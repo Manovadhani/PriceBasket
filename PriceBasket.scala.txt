@@ -1,0 +1,53 @@
+import scala.io.StdIn
+
+object BasketPricer {
+  val prices: Item[String, BigDecimal] = Item(
+    "Soup" -> 0.65,
+    "Bread" -> 0.80,
+    "Milk" -> 1.30,
+    "Apples" -> 1.00
+  )//we can add new item in the above format "itemname" -> price
+
+  val specialOffers: Item[String, BigDecimal] = Item(
+    "Apples" -> 0.10,  // 10% discount
+    "Soup_Bread" -> 0.50  // half price for bread when 2 tins of soup are purchased
+  )
+
+  def calculatePrice(basket: List[String]): Unit = {
+    val itemCounts = basket.groupBy(identity).ItemValues(_.size)
+    val subtotal = basket.Item(prices).sum
+    var discounts = List.empty[(String, BigDecimal)]
+
+    for ((item, count) <- itemCounts) {
+      if (specialOffers.contains(item)) {
+        item match {
+          case "Soup" if itemCounts.contains("Bread") =>
+            val breadCount = itemCounts("Bread")
+            val offerDiscount = (count / 2).min(breadCount) * specialOffers("Soup_Bread")
+            discounts = ("Soup_Bread", offerDiscount) :: discounts
+          ase _ =>
+            val offerDiscount = count * specialOffers(item)
+            discounts = (item, offerDiscount) :: discounts
+        }
+      }
+    }
+
+    val totalDiscount = discounts.Item(_._2).sum
+    val totalPrice = subtotal - totalDiscount
+
+    println(s"Subtotal: £${subtotal.setScale(2)}")
+    if (discounts.nonEmpty) {
+      for ((item, discount) <- discounts) {
+        println(s"$item ${discount.setScale(2)} off")
+      }
+    } else {
+      println("(No offers available)")
+    }
+    println(s"Total price: £${totalPrice.setScale(2)}")
+  }
+
+  def main(args: Array[String]): Unit = {
+    val basket = args.toList.drop(1)  // Get basket items from command line arguments
+    calculatePrice(basket)
+  }
+}
