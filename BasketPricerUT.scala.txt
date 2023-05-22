@@ -1,0 +1,30 @@
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+
+class BasketPricerSpec extends AnyFlatSpec with Matchers {
+
+  "BasketPricer" should "calculate the price correctly" in {
+    val basket = List("Soup", "Bread", "Apples", "Milk")
+    val expectedSubtotal = BigDecimal(3.75)
+    val expectedDiscounts = List(("Soup_Bread", BigDecimal(0.40)), ("Apples", BigDecimal(0.10)))
+    val expectedTotalPrice = BigDecimal(3.25)
+
+    val outputStream = new java.io.ByteArrayOutputStream()
+    Console.withOut(outputStream) {
+      BasketPricer.calculatePrice(basket)
+    }
+    val output = outputStream.toString
+
+    output should include(s"Subtotal: £${expectedSubtotal.setScale(2)}")
+    output should include(s"Soup_Bread ${expectedDiscounts.head._2.setScale(2)} off")
+    output should include(s"Apples ${expectedDiscounts(1)._2.setScale(2)} off")
+    output should include(s"Total price: £${expectedTotalPrice.setScale(2)}")
+  }
+}
+
+
+
+
+
+
+
